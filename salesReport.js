@@ -128,9 +128,7 @@ function processData(rawDataArr) {
       };
     }
 
-    if (!uniqueSKU.has(sku)) {
-      uniqueSKU.add(sku);
-    }
+    uniqueSKU.add(sku);
 
     const item = currMonth?.items[sku];
     item.orderCount += 1;
