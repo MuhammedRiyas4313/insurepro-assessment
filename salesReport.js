@@ -66,13 +66,13 @@ function processData(rawDataArr) {
   let errors = {};
   let totalSale = 0;
   let monthlySale = {};
-  let uniqueSKU = [];
+  const uniqueSKU = new Set();
 
-  for (let i = 1; i < rawDataArr?.length; i++) {
+  for (let i = 1; i < rawDataArr.length; i++) {
     const raw = rawDataArr[i]?.split(",");
 
     const date = raw[0];
-    const sku = raw?.slice(1, raw?.length - 3)?.join(",");
+    const sku = raw.slice(1, raw?.length - 3)?.join(",");
     const total = parseFloat(raw[raw?.length - 1]);
     const qty = parseInt(raw[raw?.length - 2], 10);
     const price = parseFloat(raw[raw?.length - 3]);
@@ -80,7 +80,7 @@ function processData(rawDataArr) {
     const month = date?.slice(0, 7); // 'YYYY-MM'
 
     //VALIDATE DATA
-    if (price * qty != total) {
+    if (Math.abs(price * qty - total) > 0.01) {
       errors[i + 1] = {
         msg: `Unit Price * Quantity! = Total Price`,
         data: raw,
@@ -110,7 +110,7 @@ function processData(rawDataArr) {
 
     if (!monthlySale[month]) {
       monthlySale[month] = {
-        total: total,
+        total: 0,
         items: {},
       };
     }
@@ -128,8 +128,8 @@ function processData(rawDataArr) {
       };
     }
 
-    if (!uniqueSKU?.includes(sku)) {
-      uniqueSKU.push(sku);
+    if (!uniqueSKU.has(sku)) {
+      uniqueSKU.add(sku);
     }
 
     const item = currMonth?.items[sku];
@@ -187,7 +187,7 @@ function reports(months, monthlySale) {
 
 function growth(months, monthlySale, uniqueSKU) {
   for (const sku of uniqueSKU) {
-    console.log(`\n   SKU: ${sku}`);
+    console.log(`\nSKU: ${sku}`);
     for (let i = 1; i < months.length; i++) {
       const prev = months[i - 1];
       const curr = months[i];
@@ -215,7 +215,7 @@ function growth(months, monthlySale, uniqueSKU) {
 }
 
 function malformed(err) {
-  if (err.length === 0) {
+  if (Object.keys(err).length === 0) {
     console.log("   ✓ No inconsistencies found.\n");
     return;
   }
